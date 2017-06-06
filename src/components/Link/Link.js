@@ -9,7 +9,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import history from '../../history';
+import { connect } from 'react-redux';
+import { push } from 'redux-first-routing';
 
 function isLeftClickEvent(event) {
   return event.button === 0;
@@ -24,6 +25,7 @@ class Link extends React.Component {
     to: PropTypes.string.isRequired,
     children: PropTypes.node.isRequired,
     onClick: PropTypes.func,
+    dispatch: PropTypes.func.isRequired,
   };
 
   static defaultProps = {
@@ -44,7 +46,7 @@ class Link extends React.Component {
     }
 
     event.preventDefault();
-    history.push(this.props.to);
+    this.props.dispatch(push(this.props.to));
   };
 
   render() {
@@ -53,4 +55,4 @@ class Link extends React.Component {
   }
 }
 
-export default Link;
+export default connect()(Link);

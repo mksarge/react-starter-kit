@@ -12,7 +12,7 @@ import ReactDOM from 'react-dom';
 import ErrorReporter from 'redbox-react';
 import deepForceUpdate from 'react-deep-force-update';
 import FastClick from 'fastclick';
-import queryString from 'query-string';
+import { startListener } from 'redux-first-routing';
 import { createPath } from 'history/PathUtils';
 import App from './components/App';
 import createFetch from './createFetch';
@@ -41,6 +41,8 @@ const context = {
   store: configureStore(window.App.state, { history }),
   storeSubscription: null,
 };
+
+startListener(history, context.store);
 
 // Switch off the native scroll restoration behavior and handle it manually
 // https://developers.google.com/web/updates/2015/09/history-api-scroll-restoration
@@ -97,7 +99,7 @@ FastClick.attach(document.body);
 
 const container = document.getElementById('app');
 let appInstance;
-let currentLocation = history.location;
+let currentLocation = context.store.getState().router;
 let router = require('./router').default;
 
 // Re-render the app when window.location changes
@@ -120,7 +122,7 @@ async function onLocationChange(location, action) {
     const route = await router.resolve({
       ...context,
       path: location.pathname,
-      query: queryString.parse(location.search),
+      query: location.queries,
     });
 
     // Prevent multiple page renders during the routing process
@@ -158,7 +160,16 @@ async function onLocationChange(location, action) {
 
 // Handle client-side navigation by using HTML5 History API
 // For more information visit https://github.com/mjackson/history#readme
-history.listen(onLocationChange);
+// eslint-disable-next-line no-unused-vars
+const unsubscribe = context.store.subscribe(() => {
+  const previousLocation = currentLocation;
+  currentLocation = context.store.getState().router;
+
+  if (previousLocation.pathname !== currentLocation.pathname) {
+    // console.log(`Location changed from ${previousLocation} to ${currentLocation}`);
+    onLocationChange(currentLocation);
+  }
+});
 onLocationChange(currentLocation);
 
 // Handle errors that might happen after rendering

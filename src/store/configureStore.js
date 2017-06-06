@@ -1,4 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux';
+import { routerMiddleware } from 'redux-first-routing/lib/middleware';
 import thunk from 'redux-thunk';
 import rootReducer from '../reducers';
 import createHelpers from './createHelpers';
@@ -6,7 +7,7 @@ import createLogger from './logger';
 
 export default function configureStore(initialState, helpersConfig) {
   const helpers = createHelpers(helpersConfig);
-  const middleware = [thunk.withExtraArgument(helpers)];
+  const middleware = [routerMiddleware(helpersConfig.history), thunk.withExtraArgument(helpers)];
 
   let enhancer;
 
